@@ -1,6 +1,11 @@
 import axios from 'axios';
 
+<<<<<<< HEAD
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://etharaai-backend-fnu1.onrender.com/api';
+=======
+const _envUrl = import.meta.env.VITE_API_URL || 'https://etharaai-backend-fnu1.onrender.com';
+const API_BASE_URL = _envUrl.endsWith('/api') ? _envUrl : _envUrl.replace(/\/+$/, '') + '/api';
+>>>>>>> 02c7327 (final changes)
 
 const api = axios.create({
   baseURL: API_BASE_URL,
