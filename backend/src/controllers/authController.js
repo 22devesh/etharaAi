@@ -69,6 +69,28 @@ export const signup = async (req, res) => {
     });
   } catch (error) {
     console.error('Signup error:', error);
+
+    if (error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: 'Email already registered'
+      });
+    }
+
+    if (error.message === 'JWT_SECRET is not configured') {
+      return res.status(500).json({
+        success: false,
+        message: 'Server auth configuration error. Please set JWT_SECRET.'
+      });
+    }
+
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({
+        success: false,
+        message: Object.values(error.errors)[0]?.message || 'Invalid input data'
+      });
+    }
+
     res.status(500).json({
       success: false,
       message: 'Error creating account'
@@ -122,6 +144,14 @@ export const login = async (req, res) => {
     });
   } catch (error) {
     console.error('Login error:', error);
+
+    if (error.message === 'JWT_SECRET is not configured') {
+      return res.status(500).json({
+        success: false,
+        message: 'Server auth configuration error. Please set JWT_SECRET.'
+      });
+    }
+
     res.status(500).json({
       success: false,
       message: 'Error logging in'
