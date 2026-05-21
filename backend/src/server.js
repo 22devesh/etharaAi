@@ -22,23 +22,34 @@ const allowedOrigins = [
   'http://localhost:3000'
 ];
 
-app.use(cors({
+const isAllowedOrigin = (origin) => {
+  if (allowedOrigins.includes(origin)) return true;
+
+  // Allow Netlify preview URLs, e.g. https://deployid--etharaai-fullstack.netlify.app
+  const netlifyPreviewRegex = /^https:\/\/[a-z0-9-]+--etharaai-fullstack\.netlify\.app$/i;
+  return netlifyPreviewRegex.test(origin);
+};
+
+const corsOptions = {
   origin: (origin, callback) => {
     // allow requests with no origin (like curl, Postman)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
+    if (isAllowedOrigin(origin)) return callback(null, true);
     return callback(new Error('CORS policy: Origin not allowed'), false);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
-}));
+};
+
+app.use(cors(corsOptions));
 
 // Ensure preflight requests are handled
-app.options('*', cors());
+app.options('*', cors(corsOptions));
 
 // Fallback headers for proxies or strict environments
 app.use((req, res, next) => {
-  const origin = req.headers.origin || DEFAULT_FRONTEND;
+  const requestOrigin = req.headers.origin;
+  const origin = requestOrigin && isAllowedOrigin(requestOrigin) ? requestOrigin : DEFAULT_FRONTEND;
   res.setHeader('Access-Control-Allow-Origin', origin);
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
