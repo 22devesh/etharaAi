@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { connectDB } from './utils/db.js';
+import { connectDB, isDBConnected } from './utils/db.js';
 
 // Import routes
 import authRoutes from './routes/auth.js';
@@ -60,6 +60,18 @@ app.use(express.json());
 
 // Connect to Database
 connectDB();
+
+// Fail fast with a clear message if the backend is up but MongoDB is not.
+app.use('/api', (req, res, next) => {
+  if (req.path === '/health' || isDBConnected()) {
+    return next();
+  }
+
+  return res.status(503).json({
+    success: false,
+    message: 'Database is not connected. Check MONGODB_URI on the backend deployment.'
+  });
+});
 
 // Routes
 app.use('/api/auth', authRoutes);
